@@ -54,6 +54,10 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Displays live workout statistics overlay" />
         </service>
+        
+        <service
+            android:name=".ble.BleForegroundService"
+            android:exported="false" />
             
         
     </application>

@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.spop.poverlay.ble.BleForegroundService
 import com.spop.poverlay.overlay.OverlayService
 import com.spop.poverlay.releases.Release
 import com.spop.poverlay.releases.ReleaseChecker
@@ -42,12 +43,10 @@ class ConfigurationViewModel(
     val bleFtmsDeviceName
         get() = configurationRepository.bleFtmsDeviceName
 
-    private val bleServer = (application as GrupettoApplication).bleServer
-
     init {
         updatePermissionState()
         if (bleTxEnabled.value && hasBluetoothPermissions()) {
-            bleServer.start()
+            startBleService()
         }
     }
 
@@ -67,18 +66,18 @@ class ConfigurationViewModel(
         configurationRepository.setBleTxEnabled(isChecked)
         if (isChecked) {
             if (hasBluetoothPermissions()) {
-                bleServer.start()
+                startBleService()
             } else {
                 requestBluetoothPermissions.value = getRequiredBluetoothPermissions()
             }
         } else {
-            bleServer.stop()
+            stopBleService()
         }
     }
 
     fun onBluetoothPermissionsResult(granted: Boolean) {
         if (granted) {
-            bleServer.start()
+            startBleService()
             infoPopup.postValue("Bluetooth permissions granted. BLE service started.")
         } else {
             configurationRepository.setBleTxEnabled(false)
@@ -177,6 +176,18 @@ class ConfigurationViewModel(
             val permissions = getRequiredBluetoothPermissions()
             requestBluetoothPermissions.value = permissions
         }
+    }
+
+    private fun startBleService() {
+        val context = getApplication<Application>()
+        val intent = Intent(context, BleForegroundService::class.java)
+        ContextCompat.startForegroundService(context, intent)
+    }
+
+    private fun stopBleService() {
+        val context = getApplication<Application>()
+        val intent = Intent(context, BleForegroundService::class.java)
+        context.stopService(intent)
     }
 
     fun onOverlayPermissionRequestCompleted(wasGranted: Boolean) {
