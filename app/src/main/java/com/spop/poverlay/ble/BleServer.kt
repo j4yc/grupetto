@@ -166,6 +166,9 @@ class BleServer(
     }
 
     fun start() {
+        if (isServerStarted) {
+            return
+        }
         val bluetoothAdapter = bluetoothManager.adapter
         if (bluetoothAdapter == null) {
             Timber.e("Bluetooth adapter is null")
